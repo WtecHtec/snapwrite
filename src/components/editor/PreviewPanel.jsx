@@ -46,17 +46,6 @@ export default function PreviewPanel() {
         padding: 'var(--spacing-xl)',
         position: 'relative'
       }}>
-        {isGenerating ? (
-          <div style={{ color: 'var(--text-secondary)', animation: 'pulse 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-            <Smartphone size={32} />
-            {/* Content is actually streaming in currentVersion, so we can show it! 
-                  The BlockingOverlay prevents interaction, but we should render the phone with whatever content we have.
-                  If content is empty, show "Generating...".
-              */}
-            {!currentVersion?.content ? 'Initializing Stream...' : null}
-          </div>
-        ) : null}
-
         {currentVersion ? (
           <div style={{ position: 'relative' }}>
             <div style={{
@@ -69,15 +58,38 @@ export default function PreviewPanel() {
             }}>
               <button
                 onClick={() => setLayoutMode('editing')}
+                disabled={isGenerating}
                 title="Edit Content"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: isGenerating ? 0.5 : 1,
+                  cursor: isGenerating ? 'not-allowed' : 'pointer'
+                }}
               >
                 <Edit2 size={18} />
               </button>
               <button
                 onClick={handleCopy}
+                disabled={isGenerating}
                 title="Copy HTML"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', padding: 0, background: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  padding: 0,
+                  background: 'var(--secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: isGenerating ? 0.5 : 1,
+                  cursor: isGenerating ? 'not-allowed' : 'pointer'
+                }}
               >
                 <Copy size={18} />
               </button>
@@ -90,6 +102,29 @@ export default function PreviewPanel() {
                 dangerouslySetInnerHTML={{ __html: currentVersion.content }}
               />
             </PhoneModel>
+
+            {isGenerating && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 10,
+                background: 'rgba(255, 255, 255, 0.8)',
+                padding: '12px 20px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                pointerEvents: 'none'
+              }}>
+                <Smartphone size={20} className="animate-pulse" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--primary)' }}>
+                  {!currentVersion.content ? 'Initializing...' : 'Generating...'}
+                </span>
+              </div>
+            )}
           </div>
         ) : !isGenerating && (
           <div style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>

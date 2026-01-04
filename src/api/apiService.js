@@ -2,7 +2,7 @@
 
 export async function* optimizeContentStream(text) {
     try {
-        const response = await fetch(import.meta.env.VITE_API_URL, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sse/snapwrite`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -14,30 +14,94 @@ export async function* optimizeContentStream(text) {
             throw new Error(`API Error: ${response.statusText}`);
         }
 
-        const data = await response.json();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        // Extract content based on user provided structure
-        // structure: data.choices[0].message.content
-        const fullContent = data?.data?.choices?.[0]?.message?.content || "";
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-        // Simulate streaming for the UI effect
-        let currentIndex = 0;
-        while (currentIndex < fullContent.length) {
-            // Chunk size 10-30 chars
-            const chunkSize = Math.floor(Math.random() * (30 - 10 + 1)) + 10;
-            const chunk = fullContent.slice(currentIndex, currentIndex + chunkSize);
+            buffer += decoder.decode(value, { stream: true });
 
-            yield chunk;
+            // Process buffer for complete JSON objects
+            let index = 0;
+            while (index < buffer.length) {
+                // Skip whitespace
+                while (index < buffer.length && /\s/.test(buffer[index])) {
+                    index++;
+                }
 
-            currentIndex += chunkSize;
+                if (index >= buffer.length) break;
 
-            // Fast typing effect
-            await new Promise(resolve => setTimeout(resolve, 30));
+                if (buffer[index] !== '{') {
+                    // Unexpected char, skip
+                    index++;
+                    continue;
+                }
+
+                const startPos = index;
+                let braceCount = 1;
+                let currentPos = startPos + 1;
+                let inString = false;
+                let stringChar = null;
+
+                while (braceCount > 0 && currentPos < buffer.length) {
+                    const char = buffer[currentPos];
+
+                    if (inString) {
+                        if (char === stringChar && buffer[currentPos - 1] !== '\\') {
+                            inString = false;
+                        }
+                    } else {
+                        if (char === '"') {
+                            inString = true;
+                            stringChar = char;
+                        } else if (char === '{') {
+                            braceCount++;
+                        } else if (char === '}') {
+                            braceCount--;
+                        }
+                    }
+                    currentPos++;
+                }
+
+                if (braceCount === 0) {
+                    const objectStr = buffer.slice(startPos, currentPos);
+                    try {
+                        const data = JSON.parse(objectStr);
+
+                        if (data.type === 'start') {
+                            console.log('Stream started:', data.data?.message);
+                        } else if (data.type === 'error') {
+                            console.error('Stream error:', data.data?.message);
+                            yield `<span style="color: red;">Error: ${data.data?.message}</span>`;
+                        } else if (data.type === 'chunk') {
+                            if (data.data?.content) {
+                                yield data.data.content;
+                            }
+                        }
+
+                        index = currentPos;
+                    } catch (e) {
+                        console.error("JSON parse error:", e);
+                        // Move past this {
+                        index = startPos + 1;
+                    }
+                } else {
+                    // Incomplete object, wait for more data
+                    break;
+                }
+            }
+
+            // Keep the remaining buffer
+            if (index > 0) {
+                buffer = buffer.slice(index);
+            }
         }
 
     } catch (error) {
         console.error("API Request Failed:", error);
-        // Fallback or re-throw? Let's yield an error message as content for now so user sees it
         yield `<div style="color: red; padding: 20px;"><strong>Error:</strong> Failed to connect to optimization service.<br><small>${error.message}</small></div>`;
     }
 }

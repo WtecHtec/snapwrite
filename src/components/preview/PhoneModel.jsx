@@ -1,6 +1,15 @@
+import { useEffect, useRef } from 'react';
+
 export default function PhoneModel({ children }) {
     // Logic width: 375px (iPhone standard logic width)
     // We can scale it if needed, but for now we keep it true size or fitted
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [children]);
 
     return (
         <div style={{
@@ -29,13 +38,17 @@ export default function PhoneModel({ children }) {
             </div>
 
             {/* Screen Content */}
-            <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                background: '#ffffff',
-                position: 'relative'
-            }}>
+            <div
+                ref={scrollRef}
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    background: '#ffffff',
+                    position: 'relative',
+                    scrollBehavior: 'smooth'
+                }}
+            >
                 {children}
             </div>
 

@@ -20,19 +20,19 @@ export default function LandingPage() {
             <HeroSection onStart={handleStart} />
 
             <div style={{ marginTop: '60px', maxWidth: '800px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <h3>Why choose QuickDraft AI?</h3>
+                <h3>为什么选择 SnapWrite?</h3>
                 <div style={{ display: 'flex', gap: '20px', marginTop: '20px', justifyContent: 'center' }}>
                     <div style={{ flex: 1, padding: '20px', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-                        <h4>Instant Layout</h4>
-                        <p style={{ fontSize: '0.9rem' }}>Turn raw text into beautiful HTML in seconds.</p>
+                        <h4>即时排版</h4>
+                        <p style={{ fontSize: '0.9rem' }}>秒级将纯文本转换为精美的 HTML 排版。</p>
                     </div>
                     <div style={{ flex: 1, padding: '20px', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-                        <h4>Mobile First</h4>
-                        <p style={{ fontSize: '0.9rem' }}>Preview exactly how it looks on a phone screen.</p>
+                        <h4>移动优先</h4>
+                        <p style={{ fontSize: '0.9rem' }}>完美预览手机端显示效果。</p>
                     </div>
                     <div style={{ flex: 1, padding: '20px', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-                        <h4>Version Control</h4>
-                        <p style={{ fontSize: '0.9rem' }}>Iterate safely with auto-saved versions.</p>
+                        <h4>版本控制</h4>
+                        <p style={{ fontSize: '0.9rem' }}>自动保存，轻松管理多个版本。</p>
                     </div>
                 </div>
             </div>
