@@ -23,8 +23,8 @@ export default function LandingPage() {
                 <h3>为什么选择 SnapWrite?</h3>
                 <div style={{ display: 'flex', gap: '20px', marginTop: '20px', justifyContent: 'center' }}>
                     <div style={{ flex: 1, padding: '20px', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
-                        <h4>即时排版</h4>
-                        <p style={{ fontSize: '0.9rem' }}>秒级将纯文本转换为精美的 HTML 排版。</p>
+                        <h4>AI 自动排版</h4>
+                        <p style={{ fontSize: '0.9rem' }}>智能识别内容，秒级生成微信公众号精美排版。</p>
                     </div>
                     <div style={{ flex: 1, padding: '20px', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}>
                         <h4>移动优先</h4>
