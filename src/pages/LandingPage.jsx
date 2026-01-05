@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Github } from 'lucide-react';
 import HeroSection from '../components/layout/HeroSection';
 
 export default function LandingPage() {
@@ -17,6 +18,22 @@ export default function LandingPage() {
             justifyContent: 'center',
             background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)'
         }}>
+            <a
+                href="https://github.com/wtechtec/SnapWrite"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    position: 'absolute',
+                    top: '20px',
+                    right: '20px',
+                    color: 'var(--text-secondary)',
+                    transition: 'color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-main)'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+            >
+                <Github size={24} />
+            </a>
             <HeroSection onStart={handleStart} />
 
             <div style={{ marginTop: '60px', maxWidth: '800px', textAlign: 'center', color: 'var(--text-secondary)' }}>

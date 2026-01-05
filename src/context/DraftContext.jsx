@@ -9,23 +9,22 @@ export function DraftProvider({ children }) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [originalText, setOriginalText] = useState('');
     const [layoutMode, setLayoutMode] = useState('default'); // 'default' | 'editing'
+    const [tempVersion, setTempVersion] = useState(null); // Temporary state for streaming
 
     const generateDraft = useCallback(async () => {
         if (!originalText.trim()) return;
 
         setIsGenerating(true);
 
-        // Create a new version immediately with empty content
+        // Prepare temp version
         const newId = Date.now().toString();
-        const newVersion = {
+        const startingVersion = {
             id: newId,
-            content: '', // Start empty for streaming
+            content: '',
             timestamp: new Date(),
             name: `Version ${versions.length + 1}`
         };
-
-        setVersions(prev => [...prev, newVersion]);
-        setActiveVersionId(newId);
+        setTempVersion(startingVersion);
 
         try {
             let accumulatedContent = '';
@@ -33,15 +32,22 @@ export function DraftProvider({ children }) {
             for await (const chunk of optimizeContentStream(originalText)) {
                 accumulatedContent += chunk;
 
-                // Update the specific version with new chunk
-                // We use a functional update and map to ensure we don't lose other versions
-                setVersions(prev => prev.map(v =>
-                    v.id === newId ? { ...v, content: accumulatedContent } : v
-                ));
+                // Update temp version for real-time preview
+                setTempVersion(prev => ({ ...prev, content: accumulatedContent }));
             }
+
+            // Only commit if we have content
+            if (accumulatedContent.trim()) {
+                const finalVersion = { ...startingVersion, content: accumulatedContent };
+                setVersions(prev => [...prev, finalVersion]);
+                setActiveVersionId(newId);
+            }
+
         } catch (error) {
             console.error("Generation failed", error);
+            // On error, we basically discard the temp version (it won't be added to versions)
         } finally {
+            setTempVersion(null);
             setIsGenerating(false);
         }
     }, [originalText, versions.length]);
@@ -52,7 +58,8 @@ export function DraftProvider({ children }) {
         ));
     }, []);
 
-    const currentVersion = versions.find(v => v.id === activeVersionId);
+    // If generating, show the temp version. Otherwise show the active selected version.
+    const currentVersion = tempVersion || versions.find(v => v.id === activeVersionId);
 
     const value = {
         versions,
