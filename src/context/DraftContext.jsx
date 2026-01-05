@@ -11,6 +11,44 @@ export function DraftProvider({ children }) {
     const [layoutMode, setLayoutMode] = useState('default'); // 'default' | 'editing'
     const [tempVersion, setTempVersion] = useState(null); // Temporary state for streaming
 
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        // Init from local storage or sys pref
+        return localStorage.getItem('snapwrite_theme') === 'dark';
+    });
+
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+
+    // Toggle Theme
+    const toggleTheme = useCallback(() => {
+        setIsDarkMode(prev => {
+            const newValue = !prev;
+            localStorage.setItem('snapwrite_theme', newValue ? 'dark' : 'light');
+            if (newValue) {
+                document.body.classList.add('dark');
+                setIsConfigModalOpen(true); // Open modal when switching to dark/custom mode
+            } else {
+                document.body.classList.remove('dark');
+                setIsConfigModalOpen(false); // Close if switching back
+            }
+            return newValue;
+        });
+    }, []);
+
+    // Sync body class on mount
+    useState(() => {
+        if (isDarkMode) {
+            document.body.classList.add('dark');
+        } else {
+            document.body.classList.remove('dark');
+        }
+    }, []);
+
+    const [customConfig, setCustomConfig] = useState({
+        apiUrl: 'https://api.openai.com/v1/chat/completions',
+        model: 'gpt-3.5-turbo',
+        apiKey: ''
+    });
+
     const generateDraft = useCallback(async () => {
         if (!originalText.trim()) return;
 
@@ -29,7 +67,14 @@ export function DraftProvider({ children }) {
         try {
             let accumulatedContent = '';
 
-            for await (const chunk of optimizeContentStream(originalText)) {
+            // Determining Config: Dark Mode = Custom
+            let requestConfig = null;
+            if (isDarkMode) {
+                // Use in-memory config directly
+                requestConfig = customConfig;
+            }
+
+            for await (const chunk of optimizeContentStream(originalText, requestConfig)) {
                 accumulatedContent += chunk;
 
                 // Update temp version for real-time preview
@@ -50,7 +95,7 @@ export function DraftProvider({ children }) {
             setTempVersion(null);
             setIsGenerating(false);
         }
-    }, [originalText, versions.length]);
+    }, [originalText, versions.length, isDarkMode, customConfig]);
 
     const updateVersion = useCallback((id, newContent) => {
         setVersions(prev => prev.map(v =>
@@ -72,7 +117,13 @@ export function DraftProvider({ children }) {
         generateDraft,
         updateVersion,
         layoutMode,
-        setLayoutMode
+        setLayoutMode,
+        isDarkMode,
+        toggleTheme,
+        customConfig,
+        setCustomConfig,
+        isConfigModalOpen,
+        setIsConfigModalOpen
     };
 
     return (

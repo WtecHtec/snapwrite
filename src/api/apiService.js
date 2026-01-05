@@ -1,6 +1,65 @@
 // Real API integration with simulated streaming for UI effect
+import { systemPrompt } from './systemprompt';
+export async function* optimizeContentStream(text, customConfig = null) {
+    // If custom config exists (Dark Mode), use it directly
+    if (customConfig && customConfig.apiUrl && customConfig.apiKey) {
+        try {
+            const response = await fetch(customConfig.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${customConfig.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: customConfig.model,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: `文章内容: ${text}` }
+                    ],
+                    stream: true
+                })
+            });
 
-export async function* optimizeContentStream(text) {
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Custom API Error: ${response.status} - ${errorText}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6);
+                        if (dataStr === '[DONE]') continue;
+
+                        try {
+                            const data = JSON.parse(dataStr);
+                            const content = data.choices[0]?.delta?.content || '';
+                            if (content) yield content;
+                        } catch (e) {
+                            console.error('Error parsing SSE line', e);
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error("Custom API Request Failed:", error);
+            yield `<div style="color: red; padding: 20px;"><strong>Error:</strong> Failed to connect to Custom LLM.<br><small>${error.message}</small></div>`;
+        }
+        return; // End of custom stream
+    }
+
+    // Default Backend Logic
     try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sse/snapwrite`, {
             method: 'POST',

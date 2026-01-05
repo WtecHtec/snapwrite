@@ -47,6 +47,19 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  --bg-app: #0f172a;
+  --bg-panel: #1e293b;
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --primary: #818cf8;
+  --primary-hover: #6366f1;
+  --secondary: #f472b6;
 }
 
 *,
