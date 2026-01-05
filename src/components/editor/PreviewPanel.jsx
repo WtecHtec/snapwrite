@@ -1,3 +1,4 @@
+import parse from 'html-react-parser';
 import { toast } from 'sonner';
 import { Copy, Edit2, FileText, Smartphone } from 'lucide-react';
 import { useDraft } from '../../context/DraftContext';
@@ -99,8 +100,10 @@ export default function PreviewPanel() {
               <div
                 id="preview-content"
                 style={{ padding: '20px', lineHeight: '1.6' }}
-                dangerouslySetInnerHTML={{ __html: currentVersion.content }}
-              />
+              >
+                {/* Use html-react-parser to stable re-render images */}
+                {parse(currentVersion.content || '')}
+              </div>
             </PhoneModel>
 
             {isGenerating && (

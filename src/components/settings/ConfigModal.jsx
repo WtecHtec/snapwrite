@@ -31,10 +31,17 @@ export default function ConfigModal() {
     };
 
     const handleClose = () => {
-        setIsConfigModalOpen(false); // Just close the modal, keep dark mode?
-        // Or user cancelled custom mode?
-        // If they close without applying, maybe they just want to look around.
-        // Let's just close the modal.
+        // If we are closing, check if we have a valid config applied.
+        // If not, we should probably revert to Light Mode because "Dark Mode" implies "Custom Mode".
+        // We check the *context* config, not the local one.
+        if (!customConfig.apiKey || !customConfig.apiKey.trim()) {
+            // No valid config exists in memory? Revert.
+            // But wait, what if they just opened it to peek? 
+            // If they already HAD a config, customConfig would be populated.
+            // So if customConfig is empty, we revert.
+            if (isDarkMode) toggleTheme();
+        }
+        setIsConfigModalOpen(false);
     };
 
     // We need to change how this modal is controlled.

@@ -91,7 +91,9 @@ export default function InputPanel({ collapsed }) {
                     border: '1px solid var(--border)',
                     resize: 'none',
                     fontFamily: 'inherit',
-                    fontSize: '0.95rem'
+                    fontSize: '0.95rem',
+                    background: 'var(--bg-app)',
+                    color: 'var(--text-main)'
                 }}
             />
 
