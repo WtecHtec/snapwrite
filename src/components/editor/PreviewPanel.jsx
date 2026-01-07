@@ -36,7 +36,14 @@ export default function PreviewPanel() {
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
+    <div style={{
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'var(--bg-app)',
+      overflow: 'hidden' // Prevent child overflow affecting layout
+    }}>
       <VersionTabs />
 
       <div style={{

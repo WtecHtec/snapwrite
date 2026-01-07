@@ -13,7 +13,8 @@ export default function VersionTabs() {
             borderBottom: '1px solid var(--border)',
             background: 'var(--bg-panel)',
             overflowX: 'auto',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            width: '100%' // Ensure full width
         }}>
             {versions.map((version) => (
                 <button

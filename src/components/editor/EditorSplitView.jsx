@@ -9,6 +9,7 @@ export default function EditorSplitView() {
         <div style={{
             display: 'flex',
             height: '800px',
+            width: '100%',
             maxWidth: '100%',
             marginTop: 'var(--spacing-md)',
             border: '1px solid var(--border)',
