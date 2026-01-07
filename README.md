@@ -68,4 +68,3 @@ npm run dev
 
 MIT License © 2026 SnapWrite
 
-## 获取免费AI 点数可点击 [10万点](https://www.zaiwenai.com?channel-code=695b4120ff8fe129b816fc38)
