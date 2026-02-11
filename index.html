@@ -14,6 +14,34 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+
+  <script>
+
+    setTimeout(() => {
+      const isLocked = localStorage.getItem('is_locked') === 'true';
+      if (isLocked) {
+        console.log("Google Ads not loaded - App is locked");
+        return;
+      }
+      // 加载第一个 Ads 脚本
+      const ad1 = document.createElement("script");
+      ad1.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2463152068592975";
+      ad1.async = true;
+      ad1.crossOrigin = "anonymous";
+      document.head.appendChild(ad1);
+
+      // 加载第二个 Ads 脚本
+      const ad2 = document.createElement("script");
+      ad2.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456";
+      ad2.async = true;
+      ad2.crossOrigin = "anonymous";
+      // document.head.appendChild(ad2);
+
+      console.log("Google Ads loaded after 1 minute");
+    }, 1 * 1000);
+
+  </script>
+  
 </body>
 
 </html>
