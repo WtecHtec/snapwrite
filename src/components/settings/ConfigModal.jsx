@@ -6,6 +6,7 @@ import { useDraft } from '../../context/DraftContext';
 export default function ConfigModal() {
     const { isDarkMode, toggleTheme, customConfig, setCustomConfig, isConfigModalOpen, setIsConfigModalOpen } = useDraft();
     const [localConfig, setLocalConfig] = useState(customConfig);
+    const [saveToLocal, setSaveToLocal] = useState(true);
 
     useEffect(() => {
         // Sync local input with context when opening
@@ -22,11 +23,23 @@ export default function ConfigModal() {
             toast.error('请输入 API 密钥');
             return;
         }
-        // Save to Context (Memory Only)
+
+        // Save to Context
         setCustomConfig(localConfig);
-        toast.success('配置已应用！', {
-            description: '本次会话将使用自定义 LLM 设置。'
-        });
+
+        // Handle Persistence
+        if (saveToLocal) {
+            localStorage.setItem('snapwrite_custom_config', JSON.stringify(localConfig));
+            toast.success('配置已保存并应用！', {
+                description: '您的设置已保存到本地。'
+            });
+        } else {
+            localStorage.removeItem('snapwrite_custom_config');
+            toast.success('配置已应用！', {
+                description: '本次会话将使用自定义 LLM 设置（不保存）。'
+            });
+        }
+
         setIsConfigModalOpen(false); // Close modal after applying
     };
 
@@ -103,7 +116,7 @@ export default function ConfigModal() {
                     自定义 LLM 模式
                 </h2>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                    暗黑模式已开启。您的密钥<strong>仅存储在内存中</strong>，不会保存到本地磁盘。
+                    暗黑模式已开启。您可以配置自定义 API 信息来驱动内容创作。
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -141,6 +154,19 @@ export default function ConfigModal() {
                         />
                     </div>
 
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <input
+                            type="checkbox"
+                            id="saveToLocal"
+                            checked={saveToLocal}
+                            onChange={(e) => setSaveToLocal(e.target.checked)}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="saveToLocal" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                            保存配置到本地浏览器（LocalStorage）
+                        </label>
+                    </div>
+
                     <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                         <button
                             onClick={handleApply}
@@ -163,7 +189,7 @@ export default function ConfigModal() {
                     </div>
 
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px' }}>
-                        配置仅在当前会话有效，刷新页面后将自动清除。
+                        {saveToLocal ? '配置将持久保存，直至您手动清除或更改。' : '配置仅在当前会话有效，刷新页面后将自动清除。'}
                     </p>
                 </div>
             </div>

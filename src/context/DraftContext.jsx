@@ -43,10 +43,20 @@ export function DraftProvider({ children }) {
         }
     }, []);
 
-    const [customConfig, setCustomConfig] = useState({
-        apiUrl: 'https://api.openai.com/v1/chat/completions',
-        model: 'gpt-3.5-turbo',
-        apiKey: ''
+    const [customConfig, setCustomConfig] = useState(() => {
+        const savedConfig = localStorage.getItem('snapwrite_custom_config');
+        if (savedConfig) {
+            try {
+                return JSON.parse(savedConfig);
+            } catch (e) {
+                console.error('Failed to parse saved config', e);
+            }
+        }
+        return {
+            apiUrl: 'https://api.openai.com/v1/chat/completions',
+            model: 'gpt-3.5-turbo',
+            apiKey: ''
+        };
     });
 
     const generateDraft = useCallback(async () => {
