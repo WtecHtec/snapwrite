@@ -44,7 +44,7 @@ export default function InputPanel({ collapsed }) {
             borderLeft: '1px solid var(--border)'
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-                <h3 style={{ margin: 0 }}>Original Content</h3>
+                <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Original Content</h3>
                 <button
                     onClick={generateDraft}
                     disabled={isGenerating || !originalText.trim()}

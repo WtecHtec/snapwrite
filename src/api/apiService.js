@@ -1,6 +1,6 @@
 // Real API integration with simulated streaming for UI effect
-import { systemPrompt } from './systemprompt';
-export async function* optimizeContentStream(text, customConfig = null) {
+import { getSystemPrompt } from './systemprompt';
+export async function* optimizeContentStream(text, customConfig = null, style = 'magazine', customStylePrompt = '') {
     // If custom config exists (Dark Mode), use it directly
     if (customConfig && customConfig.apiUrl && customConfig.apiKey) {
         try {
@@ -13,7 +13,7 @@ export async function* optimizeContentStream(text, customConfig = null) {
                 body: JSON.stringify({
                     model: customConfig.model,
                     messages: [
-                        { role: "system", content: systemPrompt },
+                        { role: "system", content: getSystemPrompt(style, customStylePrompt) },
                         { role: "user", content: `文章内容: ${text}` }
                     ],
                     stream: true
@@ -66,7 +66,7 @@ export async function* optimizeContentStream(text, customConfig = null) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ content: text })
+            body: JSON.stringify({ content: text, style })
         });
 
         if (!response.ok) {

@@ -4,14 +4,16 @@ import { toast } from 'sonner';
 import { useDraft } from '../../context/DraftContext';
 
 export default function ConfigModal() {
-    const { isDarkMode, toggleTheme, customConfig, setCustomConfig, isConfigModalOpen, setIsConfigModalOpen } = useDraft();
+    const { isDarkMode, toggleTheme, customConfig, setCustomConfig, isConfigModalOpen, setIsConfigModalOpen, customStylePrompt, setCustomStylePrompt } = useDraft();
     const [localConfig, setLocalConfig] = useState(customConfig);
+    const [localPrompt, setLocalPrompt] = useState(customStylePrompt);
     const [saveToLocal, setSaveToLocal] = useState(true);
 
     useEffect(() => {
         // Sync local input with context when opening
         setLocalConfig(customConfig);
-    }, [customConfig]);
+        setLocalPrompt(customStylePrompt);
+    }, [customConfig, customStylePrompt]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,17 +28,20 @@ export default function ConfigModal() {
 
         // Save to Context
         setCustomConfig(localConfig);
+        setCustomStylePrompt(localPrompt);
 
         // Handle Persistence
         if (saveToLocal) {
             localStorage.setItem('snapwrite_custom_config', JSON.stringify(localConfig));
+            localStorage.setItem('snapwrite_custom_style_prompt', localPrompt);
             toast.success('配置已保存并应用！', {
                 description: '您的设置已保存到本地。'
             });
         } else {
             localStorage.removeItem('snapwrite_custom_config');
+            localStorage.removeItem('snapwrite_custom_style_prompt');
             toast.success('配置已应用！', {
-                description: '本次会话将使用自定义 LLM 设置（不保存）。'
+                description: '本次会话将使用自定义设置（不保存）。'
             });
         }
 
@@ -113,10 +118,10 @@ export default function ConfigModal() {
 
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                     <AlertCircle size={24} color="var(--primary)" />
-                    自定义 LLM 模式
+                    自定义配置
                 </h2>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                    暗黑模式已开启。您可以配置自定义 API 信息来驱动内容创作。
+                    暗黑模式已开启。您可以配置自定义 API & 风格来驱动创意。
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -151,6 +156,31 @@ export default function ConfigModal() {
                             onChange={handleChange}
                             placeholder="sk-..."
                             style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-main)' }}
+                        />
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: 500 }}>
+                            自定义风格描述
+                            <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                                (技术约束将自动应用)
+                            </span>
+                        </label>
+                        <textarea
+                            value={localPrompt}
+                            onChange={(e) => setLocalPrompt(e.target.value)}
+                            placeholder="描述你想要的风格，例如：'极简黑白、多使用引用块、文字采用仿宋体'..."
+                            style={{
+                                width: '100%',
+                                height: '100px',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--bg-app)',
+                                color: 'var(--text-main)',
+                                resize: 'none',
+                                fontSize: '0.85rem'
+                            }}
                         />
                     </div>
 

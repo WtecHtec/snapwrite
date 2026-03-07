@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { optimizeContentStream } from '../api/apiService';
 
 const DraftContext = createContext();
@@ -15,6 +15,22 @@ export function DraftProvider({ children }) {
         // Init from local storage or sys pref
         return localStorage.getItem('snapwrite_theme') === 'dark';
     });
+
+    const [conversionStyle, setConversionStyle] = useState(() => {
+        return localStorage.getItem('snapwrite_conversion_style') || 'magazine';
+    });
+
+    const [customStylePrompt, setCustomStylePrompt] = useState(() => {
+        return localStorage.getItem('snapwrite_custom_style_prompt') || '';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('snapwrite_conversion_style', conversionStyle);
+    }, [conversionStyle]);
+
+    useEffect(() => {
+        localStorage.setItem('snapwrite_custom_style_prompt', customStylePrompt);
+    }, [customStylePrompt]);
 
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
@@ -84,7 +100,7 @@ export function DraftProvider({ children }) {
                 requestConfig = customConfig;
             }
 
-            for await (const chunk of optimizeContentStream(originalText, requestConfig)) {
+            for await (const chunk of optimizeContentStream(originalText, requestConfig, conversionStyle, customStylePrompt)) {
                 accumulatedContent += chunk;
 
                 // Update temp version for real-time preview
@@ -133,7 +149,11 @@ export function DraftProvider({ children }) {
         customConfig,
         setCustomConfig,
         isConfigModalOpen,
-        setIsConfigModalOpen
+        setIsConfigModalOpen,
+        conversionStyle,
+        setConversionStyle,
+        customStylePrompt,
+        setCustomStylePrompt
     };
 
     return (
