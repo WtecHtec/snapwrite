@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverActions: {},
-    // 确保 Vercel Serverless Function 构建打包追踪包含 stylemd 目录
-    outputFileTracingIncludes: {
-      '/api/**/*': ['./stylemd/**/*'],
-    },
+  webpack: (config) => {
+    // 使用 Webpack Native Asset Modules (asset/source) 将 .md 文件以纯文本形式静态编译打包进内存 Bundle 中
+    config.module.rules.push({
+      test: /\.md$/,
+      type: 'asset/source',
+    });
+    return config;
   },
 };
 
