@@ -183,12 +183,11 @@ export default function HomePage() {
         const slicedHtml = target.slice(0, nextLen);
 
         currentRenderedLengthRef.current = nextLen;
-        const cleanedHtml = slicedHtml
-          .replace(/^```(?:html|xml)?\s*/gi, '')
-          .replace(/\s*```$/gi, '')
-          .replace(/```/g, '')
-          .replace(/\*\*(.*?)\*\*/g, '<span leaf="" style="font-weight:bold;">$1</span>')
-          .replace(/__(.*?)__/g, '<span leaf="" style="font-weight:bold;">$1</span>');
+        // 仅擦除最外层首尾可能遗留的代码块标记，不损坏内部 HTML 属性结构
+        let cleanedHtml = slicedHtml.replace(/^```(?:html|xml)?\s*/gi, '');
+        if (cleanedHtml.endsWith('```')) {
+          cleanedHtml = cleanedHtml.slice(0, -3).trimEnd();
+        }
 
         setFormattedHtml(cleanedHtml);
 
@@ -203,12 +202,10 @@ export default function HomePage() {
         setIsFormatting(false);
         // 最终完成渲染！此时向服务端发起 1 次 HTTP POST 最终网络同步
         if (currentSyncId && targetBufferRef.current) {
-          const finalCleanHtml = targetBufferRef.current
-            .replace(/^```(?:html|xml)?\s*/gi, '')
-            .replace(/\s*```$/gi, '')
-            .replace(/```/g, '')
-            .replace(/\*\*(.*?)\*\*/g, '<span leaf="" style="font-weight:bold;">$1</span>')
-            .replace(/__(.*?)__/g, '<span leaf="" style="font-weight:bold;">$1</span>');
+          let finalCleanHtml = targetBufferRef.current.replace(/^```(?:html|xml)?\s*/gi, '');
+          if (finalCleanHtml.endsWith('```')) {
+            finalCleanHtml = finalCleanHtml.slice(0, -3).trimEnd();
+          }
           PreviewSyncService.publishUpdate(currentSyncId, finalCleanHtml, content, true);
         }
       }

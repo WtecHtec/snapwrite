@@ -82,13 +82,10 @@ export async function POST(req: Request) {
 
                   try {
                     const json = JSON.parse(dataStr);
-                    let delta = json.choices?.[0]?.delta?.content || '';
+                    const delta = json.choices?.[0]?.delta?.content || '';
                     if (delta) {
-                      // 过滤 LLM 可能误输出的 Markdown 代码块标签
-                      delta = delta.replace(/```html/gi, '').replace(/```xml/gi, '').replace(/```/g, '');
-                      if (delta) {
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
-                      }
+                      // 原样传输增量内容，零正则污染
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
                     }
                   } catch (e) {
                     // 忽略 JSON 解析空块
