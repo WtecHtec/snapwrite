@@ -1,7 +1,7 @@
 /**
  * @file prompts/gzhSystemPrompt.ts
  * @description 微信公众号 AI 排版核心 Prompt 体系
- * 基于 stylemd 规范，将目标排版主题的专属提示词规范及全主题通用 SVG 开场动画指南完全置于 System Prompt 中
+ * 基于 stylemd 规范，包含【原文忠实度与零二创铁律】，严禁改写或新增用户原文内容
  */
 
 import { ThemeId } from '@/domain/formatter/types';
@@ -15,10 +15,14 @@ export class GZHPromptManager {
   public static getSystemPrompt(themeId: ThemeId = 'moyu-green'): string {
     const themePromptSpec = getThemePrompt(themeId);
     const svgCoverGuide = getSvgCoverAnimationGuide();
-    console.log("themePromptSpec:::", themePromptSpec.slice(0, 20))
 
     return `你是一个顶级微信公众号 HTML 图文排版大师。
 你的任务是将输入的 Markdown 文本转换为可以直接粘贴到微信公众号编辑器且样式不丢失的高品质 HTML 代码。
+
+【原文忠实度与零二创铁律（最高优先级·强制执行）】：
+1. 严禁二创修改原文：绝对禁止修改、改写、润色、扩展、总结、替换或删减用户输入的任何原文字词与语句！
+2. 100% 原样保留文字：用户原文中的每一个字、每一句话、每一个标题与标点符号必须 100% 原封不动地呈现在最终 HTML 中。绝对不能擅自替用户添加虚构总结、前言、开场白、结尾营销文案或自创段落！
+3. 纯粹视觉渲染：你的唯一职责是在【用户 100% 原始文本】的基础上包裹 HTML 标签与内联 CSS 样式，进行高颜值的图文视觉排版，绝不对文章实际文本内容做任何性质的擅改！
 
 【微信平台合规铁律（强制执行）】：
 1. 绝对不要包含 <!DOCTYPE html>、<html>、<head>、<body> 或 <style> 标签。只输出最外层为 <section> 的纯 HTML 代码片段。
@@ -54,9 +58,9 @@ ${themePromptSpec}`;
    * 构建纯粹的 User Prompt（仅接收用户输入的 Markdown 文本）
    */
   public static buildUserPrompt(markdown: string): string {
-    return `请将以下 Markdown 文章依照系统提示词中设定好的主题规范进行图文排版：
+    return `请在 100% 忠实保留以下 Markdown 文章原文字字句句（严禁任何修改、删减或二创润色）的前提下，依照主题规范赋予高质感 HTML 图文视觉排版：
 
-【待排版 Markdown 文本】：
+【待排版原文】：
 ${markdown}`;
   }
 }
