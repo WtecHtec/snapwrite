@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #F5F5F7;
+  color: #1D1D1F;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000000;
+    color: #F5F5F7;
+  }
+}
+
+/* Apple 高级平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 自定义极简 Scrollbar */
+/* 微信手机端预览容器防横向滚动与自动换行优化 */
+#gzh-preview-container {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+#gzh-preview-container section,
+#gzh-preview-container p,
+#gzh-preview-container span,
+#gzh-preview-container div {
+  max-width: 100% !important;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+#gzh-preview-container img,
+#gzh-preview-container svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+#gzh-preview-container pre,
+#gzh-preview-container code {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  max-width: 100% !important;
+}
+
+#gzh-preview-container table {
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* 微信文章在手机外壳中的容器还原 */
+#gzh-preview-container img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 16px auto;
+  border-radius: 8px;
+}
+
+#gzh-preview-container p {
+  word-break: break-word;
+}
