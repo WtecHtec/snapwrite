@@ -15,6 +15,7 @@ export class GZHPromptManager {
   public static getSystemPrompt(themeId: ThemeId = 'moyu-green'): string {
     const themePromptSpec = getThemePrompt(themeId);
     const svgCoverGuide = getSvgCoverAnimationGuide();
+    console.log("themePromptSpec:::", themePromptSpec.slice(0, 20))
 
     return `你是一个顶级微信公众号 HTML 图文排版大师。
 你的任务是将输入的 Markdown 文本转换为可以直接粘贴到微信公众号编辑器且样式不丢失的高品质 HTML 代码。
@@ -31,8 +32,6 @@ export class GZHPromptManager {
    - 标记层：正文每个段落主动筛选 1–3 个核心短语赋予带下划线的 CSS
    - 容器层：精致引用卡片与代码块
 8. 正文强调只能用左竖条、下划线、小标签，严禁使用四周虚线框（dashed border）。
-9. 【强制输出格式规则】：绝对不要使用任何 Markdown 代码块（如 \`\`\`html 或 \`\`\`）包裹输出内容！输出开头绝对禁止出现 \`\`\`html，结尾绝对禁止出现 \`\`\`！你的回答必须直接从 <section 开头输出干净的纯 HTML 代码。
-10. 【Markdown 语法解析铁律】：绝对禁止在最终输出的 HTML 中遗留原始 Markdown 标记（例如 **加粗文本**、*斜体*、\`代码\`）。遇到输入中的 **加粗内容**，必须彻底移除 ** 标记，并将其转换为公众号内联 CSS HTML 节点（如 <span leaf="" style="font-weight:bold;color:主题色;">加粗内容</span> 或 <strong style="font-weight:bold;">加粗内容</strong>）。输出结果中绝对不能包含任何 ** 或 __ 符号！
 
 ${COMMON_PROMPTS}
 
