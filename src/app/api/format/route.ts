@@ -1,7 +1,7 @@
 /**
  * @file app/api/format/route.ts
  * @description 微信公众号 SSE (Server-Sent Events) 流式 AI 排版 API 路由
- * 支持 .env 系统环境变量与用户自定义 LLM 配置 (snapwrite_custom_config: apiKey, apiUrl, model)
+ * 支持精准包边界缓冲区 (buffer.split('\n\n'))，解决 Vercel 网关分包撕裂截断问题
  */
 
 import { NextResponse } from 'next/server';
@@ -66,30 +66,55 @@ export async function POST(req: Request) {
             }
 
             const reader = llmRes.body.getReader();
-            const decoder = new TextDecoder();
+            const decoder = new TextDecoder('utf-8');
+
+            let buffer = '';
 
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
 
-              const chunk = decoder.decode(value);
-              const lines = chunk.split('\n');
+              // 1. 增量解码流文本
+              buffer += decoder.decode(value, { stream: true });
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const dataStr = line.replace('data: ', '').trim();
+              // 2. 按标准的 SSE 消息双换行符 '\n\n' 进行拆包，留存未收全的半包至下一轮
+              const events = buffer.split('\n\n');
+              buffer = events.pop() || '';
+
+              for (const event of events) {
+                const trimmed = event.trim();
+                if (!trimmed) continue;
+
+                if (trimmed.startsWith('data:')) {
+                  const dataStr = trimmed.slice(5).trim();
                   if (dataStr === '[DONE]') break;
 
                   try {
                     const json = JSON.parse(dataStr);
                     const delta = json.choices?.[0]?.delta?.content || '';
                     if (delta) {
-                      // 原样传输增量内容，零正则污染
                       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
                     }
                   } catch (e) {
-                    // 忽略 JSON 解析空块
+                    // 忽略格式解析半包
                   }
+                }
+              }
+            }
+
+            // 清理末尾遗留的 Buffer
+            if (buffer.trim()) {
+              const trimmed = buffer.trim();
+              if (trimmed.startsWith('data:')) {
+                const dataStr = trimmed.slice(5).trim();
+                if (dataStr && dataStr !== '[DONE]') {
+                  try {
+                    const json = JSON.parse(dataStr);
+                    const delta = json.choices?.[0]?.delta?.content || '';
+                    if (delta) {
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
+                    }
+                  } catch (e) {}
                 }
               }
             }
