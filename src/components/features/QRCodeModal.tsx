@@ -61,7 +61,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, syncI
         {/* 实时同步状态指示 badge */}
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-700 dark:text-emerald-300">
           <span className="w-2 h-2 rounded-full bg-wechat-green animate-pulse" />
-          <span>双向实时同步频道已连接 (每 2 秒准实时自动更新)</span>
+          <span>双向实时同步频道已连接 (每 10 秒准实时自动更新)</span>
         </div>
 
         {/* 复制链接备选 */}

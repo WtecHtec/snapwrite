@@ -1,7 +1,7 @@
 /**
  * @file services/sync/PreviewSyncService.ts
  * @description 桌面编辑端与手机扫码预览端的双向数据同步服务
- * 支持即时发布、实时广播与页面关闭/卸载时的及时资源回收 (clearPreview)
+ * 极简零日志刷屏：仅在渲染完全结束或主动扫码时才发起 1 次 HTTP POST 服务端同步
  */
 
 import { LocalStorageService } from '../storage/LocalStorageService';
@@ -16,9 +16,18 @@ export class PreviewSyncService {
 
   /**
    * 发布最新排版结果到同步频道
+   * @param syncId 唯一同步 ID
+   * @param html 渲染后的 HTML
+   * @param markdown 原始文章文本
+   * @param syncToServer 是否向服务端发起 HTTP POST（默认 false，仅本地与页签广播；只有在渲染完成或主动扫码时传 true）
    */
-  public static publishUpdate(syncId: string, html: string, markdown: string): void {
-    // 1. 本地存储 & 同域标签页广播
+  public static publishUpdate(
+    syncId: string,
+    html: string,
+    markdown: string,
+    syncToServer: boolean = false
+  ): void {
+    // 1. 本地存储 & 同域标签页 BroadcastChannel 广播 (0ms 瞬间完成，零网络请求)
     LocalStorageService.savePreviewContent(syncId, html, markdown);
 
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -31,8 +40,8 @@ export class PreviewSyncService {
       }
     }
 
-    // 2. 跨设备/手机扫码服务端异步推送
-    if (typeof window !== 'undefined' && syncId && html) {
+    // 2. 只有在指定 syncToServer 为 true 时（渲染最终完成 / 主动扫码），才发起 1 次 HTTP POST 推送
+    if (syncToServer && typeof window !== 'undefined' && syncId && html) {
       fetch(`/api/preview/${syncId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

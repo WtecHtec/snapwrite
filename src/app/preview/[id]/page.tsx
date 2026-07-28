@@ -1,11 +1,12 @@
 /**
  * @file app/preview/[id]/page.tsx
- * @description 手机扫码独立预览页面（首次载入即可查看高保真预览，支持手动刷新，无 2s 轮询喧扰）
+ * @description 手机扫码独立预览页面（扫码打开时开启 5s 周期同步拉取渲染，支持手动刷新）
  */
 
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import parse from 'html-react-parser';
 import { PreviewSyncService } from '@/services/sync/PreviewSyncService';
 import { Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
 
@@ -26,7 +27,6 @@ export default function MobilePreviewPage({ params }: MobilePreviewPageProps) {
   // 抓取服务端及本地最新预览内容
   const loadPreview = async () => {
     if (!syncId) return;
-    setLoading(true);
     setErrorMsg('');
 
     const data = await PreviewSyncService.fetchPreviewRemote(syncId);
@@ -47,10 +47,17 @@ export default function MobilePreviewPage({ params }: MobilePreviewPageProps) {
 
     let isMounted = true;
 
-    // 1. 首次载入抓取
+    // 1. 首次扫码进入即刻载入
     loadPreview();
 
-    // 2. 同设备 BroadcastChannel 实时订阅
+    // 2. 只有扫码在手机端预览时，开启 5s 周期同步渲染轮询
+    const intervalId = setInterval(() => {
+      if (isMounted) {
+        loadPreview();
+      }
+    }, 5000);
+
+    // 3. 同设备 BroadcastChannel 实时订阅
     const unsubscribe = PreviewSyncService.subscribeToUpdates(syncId, (newHtml) => {
       if (isMounted) {
         setFormattedHtml(newHtml);
@@ -61,13 +68,14 @@ export default function MobilePreviewPage({ params }: MobilePreviewPageProps) {
 
     return () => {
       isMounted = false;
+      clearInterval(intervalId);
       unsubscribe();
     };
   }, [syncId]);
 
   if (loading && !formattedHtml) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-wechat-lightBg text-zinc-600">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F5F5F7] text-zinc-600">
         <RefreshCw className="w-8 h-8 animate-spin text-wechat-green mb-3" />
         <p className="text-sm font-medium">正在加载 SnapWrite 扫码预览...</p>
       </div>
@@ -76,7 +84,7 @@ export default function MobilePreviewPage({ params }: MobilePreviewPageProps) {
 
   if (errorMsg && !formattedHtml) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-wechat-lightBg text-zinc-600 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F5F5F7] text-zinc-600 text-center">
         <AlertCircle className="w-10 h-10 text-amber-500 mb-3" />
         <p className="text-sm font-semibold text-zinc-800 mb-1">{errorMsg}</p>
         <p className="text-xs text-gray-400 mb-4">桌面端编辑页面可能已重新生成或关闭</p>
@@ -91,45 +99,34 @@ export default function MobilePreviewPage({ params }: MobilePreviewPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 pb-12">
-      {/* 微信公众号手机端阅读 Header 标识 */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center gap-1.5 font-medium text-wechat-green">
-          <Sparkles className="w-4 h-4" />
-          <span>SnapWrite 手机实时预览</span>
+    <div className="min-h-screen bg-[#F5F5F7] text-zinc-900 flex flex-col items-center">
+      {/* 顶部手机浏览浮动 Chrome */}
+      <header className="sticky top-0 z-30 w-full bg-white/90 backdrop-blur-md border-b border-gray-200/80 px-4 py-2.5 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-wechat-green flex items-center justify-center text-white text-xs font-bold">
+            <Sparkles className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs font-bold text-zinc-800">SnapWrite 移动预览</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-gray-400">
-            {new Date(updatedAt).toLocaleTimeString()}
-          </span>
+          <span className="text-[10px] text-gray-400 font-mono">5s 自动刷新中</span>
           <button
             onClick={loadPreview}
-            disabled={loading}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-all text-gray-500"
-            title="刷新最新排版"
+            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            title="手动刷新"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* 微信文章正文展示区 */}
-      <main className="max-w-md mx-auto p-4">
-        <div
-          id="gzh-mobile-article"
-          dangerouslySetInnerHTML={{ __html: formattedHtml }}
-        />
-      </main>
-
-      {/* 底部微信客户端 Action 模拟 */}
-      <footer className="max-w-md mx-auto px-4 mt-8 pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
-        <span>阅读 10000+</span>
-        <div className="flex gap-4 text-gray-500 font-medium">
-          <span>赞 88</span>
-          <span>在看 66</span>
+      {/* 手机视角文章内容展示容器 (100% 保持防横向溢出) */}
+      <main className="w-full max-w-[480px] bg-white min-h-[calc(100vh-48px)] p-4 sm:p-5 shadow-sm">
+        <div id="mobile-gzh-preview-container" className="w-full text-zinc-900 leading-relaxed overflow-x-hidden">
+          {formattedHtml ? parse(formattedHtml) : null}
         </div>
-      </footer>
+      </main>
     </div>
   );
 }

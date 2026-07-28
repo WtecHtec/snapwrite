@@ -193,7 +193,7 @@ export default function HomePage() {
         setFormattedHtml(cleanedHtml);
 
         if (currentSyncId) {
-          PreviewSyncService.publishUpdate(currentSyncId, cleanedHtml, content);
+          PreviewSyncService.publishUpdate(currentSyncId, cleanedHtml, content, false);
         }
       }
 
@@ -201,6 +201,16 @@ export default function HomePage() {
         rafIdRef.current = requestAnimationFrame(step);
       } else {
         setIsFormatting(false);
+        // 最终完成渲染！此时向服务端发起 1 次 HTTP POST 最终网络同步
+        if (currentSyncId && targetBufferRef.current) {
+          const finalCleanHtml = targetBufferRef.current
+            .replace(/^```(?:html|xml)?\s*/gi, '')
+            .replace(/\s*```$/gi, '')
+            .replace(/```/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '<span leaf="" style="font-weight:bold;">$1</span>')
+            .replace(/__(.*?)__/g, '<span leaf="" style="font-weight:bold;">$1</span>');
+          PreviewSyncService.publishUpdate(currentSyncId, finalCleanHtml, content, true);
+        }
       }
     };
 
@@ -352,7 +362,12 @@ export default function HomePage() {
               formattedHtml={formattedHtml}
               selectedThemeId={renderedThemeId}
               onCopy={handleCopy}
-              onOpenQRCode={() => setIsQRCodeOpen(true)}
+              onOpenQRCode={() => {
+                if (syncId && formattedHtml) {
+                  PreviewSyncService.publishUpdate(syncId, formattedHtml, content, true);
+                }
+                setIsQRCodeOpen(true);
+              }}
               isFormatting={isFormatting}
             />
           </div>
